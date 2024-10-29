@@ -19,3 +19,22 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.drawer-enter {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.drawer-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 10s ease-in-out, opacity 10s ease-in-out; /* Adjusted to 1.5s */
+}
+.drawer-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+.drawer-exit-active {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 1.5s ease-in-out, opacity 1.5s ease-in-out; /* Adjusted to 1.5s */
+}

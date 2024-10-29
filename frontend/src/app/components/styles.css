@@ -1,0 +1,20 @@
+/* styles.css */
+.drawer-enter {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+.drawer-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform 2s ease-in-out, opacity 2s ease-in-out;
+  }
+.drawer-exit {
+    transform: translateX(0);
+    opacity: 1;
+  }
+.drawer-exit-active {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.7s ease-in-out, opacity 0.7s ease-in-out;
+  }
+  

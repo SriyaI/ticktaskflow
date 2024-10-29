@@ -1,32 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import React from "react";
+import TaskApp from "./components/TaskApp";
+import TaskList from "./components/TaskList";
+import { TaskProvider } from "./context/TaskContext";
 
-const Home = () => {
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('http://localhost:5000/');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setMessage(data.message);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    return (
-        <div>
-            <h1>{message || 'Loading...'}</h1>
-        </div>
-    );
+const App = () => {
+  return (
+    <TaskProvider>
+      <TaskApp />
+    </TaskProvider>
+  );
 };
 
-export default Home;
+export default App;

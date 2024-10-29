@@ -1,0 +1,50 @@
+/* src/App.css */
+.app {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  
+  .task-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .task-list li {
+    background: #f0f0f0;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+  
+  .task-list li:hover {
+    background: #e0e0e0;
+  }
+  
+  .drawer {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    transition: transform 0.3s ease;
+    transform: translateX(0);
+  }
+  
+  .close-btn {
+    background: #ff5c5c;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .drawer.hide {
+    transform: translateX(100%);
+  }
+  
