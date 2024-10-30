@@ -1,5 +1,4 @@
-# Creating the README.md content based on the provided details.
-readme_content = """# TickTaskFlow
+"""# TickTaskFlow
 
 ## Description
 TickTaskFlow is a user-friendly to-do application designed to streamline task management and enhance productivity. With its intuitive interface and robust features, users can effortlessly create, organize, and manage tasks, whether for personal projects or professional commitments. The app allows for advanced recurring task options, making it easier than ever to stay on top of deadlines and responsibilities.
