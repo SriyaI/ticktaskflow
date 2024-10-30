@@ -4,11 +4,11 @@ import { useTaskContext } from "../context/TaskContext";
 import { DrawerDefault } from "./Drawer";
 
 import ListItem from "./ListItem";
-const TaskItem = ({ task }) => {
+const TaskItem = ({ task, isRecurring }) => {
   const { updateTask, deleteTask } = useTaskContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(task.completed || false);
-
+  console.log("helloooo")
   const handleUpdate = (updatedTask) => {
     console.log(updatedTask)
     const { id, description, dueDate, recurrence, completed, interval, startDate } = updatedTask;
@@ -22,7 +22,7 @@ const TaskItem = ({ task }) => {
 
   return (
     <>
-      <ListItem key={task.id} isChecked={isChecked} setIsChecked={setIsChecked} onClick={handleClick} task={task}/>
+      <ListItem key={task.id} isChecked={isChecked} setIsChecked={setIsChecked} onClick={handleClick} task={task} isRecurring={isRecurring}/>
       {isDrawerOpen && (
           <DrawerDefault
             task={task}

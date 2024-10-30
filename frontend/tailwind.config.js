@@ -27,5 +27,5 @@ module.exports = {
       backdropBlur: ['hover', 'focus'],
     },
   },
-  plugins: [],
+  plugins: [require("@material-tailwind/react")],
 };

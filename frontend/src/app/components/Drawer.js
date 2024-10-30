@@ -53,7 +53,15 @@ export function DrawerDefault({ task, onClose, onUpdate, onDelete, isOpen, setIs
           startDate={startDate}
           setStartDate={setStartDate}
         />
-        <br></br>
+
+        <input
+            type="checkbox"
+            id={task.id}
+            checked={isChecked}
+            onChange={(e) => setIsChecked(e.target.checked)} // Sync checkbox state
+            className="cursor-pointer" // Optional: Add a class for pointer cursor
+          />
+          <label htmlFor={task.id} className="cursor-pointer text-black"> Mark As Completed </label>
         <br></br>
         <br></br>
         <button 
@@ -68,18 +76,6 @@ export function DrawerDefault({ task, onClose, onUpdate, onDelete, isOpen, setIs
         >
           Delete
         </button>
-        <br></br>
-        <br></br>
-        <br></br>
-        <Checkbox
-              id={task.id}
-              checked={isChecked}
-              ripple={true} // Enable ripple effect
-              onChange={(e) => setIsChecked(e.target.checked)} // Sync checkbox state
-              containerProps={{
-                className: "p-0",
-              }}
-            />
       </Drawer>
     </div>
   );

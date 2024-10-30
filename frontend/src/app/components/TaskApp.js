@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTaskContext } from "../context/TaskContext";
 import TaskInput from "./TaskInput";
 import TaskList from "./TaskList";
@@ -24,11 +24,17 @@ const TaskApp = () => {
         }
     };
 
-    const completedTasks = tasks.filter((task) => task.completed);
-    const notCompletedTasks = tasks.filter((task) => !task.completed);
-
+    const completedTasks = useMemo(() => tasks.non_recurring.filter((task) => task.completed), [tasks.non_recurring]);
+    const notCompletedTasks = useMemo(() => tasks.non_recurring.filter((task) => !task.completed), [tasks.non_recurring]);
+    const recurringTasks = useMemo(() => tasks.recurring, [tasks.recurring]);
+    
     const handleOpen = (value) => {
         setOpen((prev) => (prev === value ? null : value)); // Close if already open
+    };
+    
+    const handleAccordionClick = (value) => () => {
+        console.log("Toggling accordion:", value); // Check which accordion is being toggled
+        handleOpen(value);
     };
 
     return (
@@ -43,20 +49,29 @@ const TaskApp = () => {
             />
 
             <Accordion open={open === 1}>
-                <AccordionHeader onClick={() => handleOpen(1)}>
+                <AccordionHeader onClick={handleAccordionClick(1)}>
                     Not Completed Tasks
                 </AccordionHeader>
                 <AccordionBody>
-                    {open === 1 && <TaskList tasks={notCompletedTasks} />}
+                    {open === 1 && <TaskList tasks={notCompletedTasks} key="not-completed" isRecurring={false} />}
                 </AccordionBody>
             </Accordion>
 
             <Accordion open={open === 2}>
-                <AccordionHeader onClick={() => handleOpen(2)}>
+                <AccordionHeader onClick={handleAccordionClick(2)}>
                     Completed Tasks
                 </AccordionHeader>
                 <AccordionBody>
-                    {open === 2 && <TaskList tasks={completedTasks} />}
+                    {open === 2 && <TaskList tasks={completedTasks} key="completed" isRecurring={false} />}
+                </AccordionBody>
+            </Accordion>
+
+            <Accordion open={open === 3}>
+                <AccordionHeader onClick={handleAccordionClick(3)}>
+                    Recurring Tasks
+                </AccordionHeader>
+                <AccordionBody>
+                    {open === 3 && <TaskList tasks={recurringTasks} key="recurring" isRecurring={true} />}
                 </AccordionBody>
             </Accordion>
         </>

@@ -8,21 +8,21 @@ async function calculateNextDate(startDate, type, interval, id) {
       case 'daily':
         nextDate.setDate(nextDate.getDate() + interval);
         break;
-      // case 'weekly':
-      //   nextDate.setDate(nextDate.getDate() + interval * 7);
-      //   console.log("hi")
-      //   break;
-      // case 'monthly':
-      //   if (recurrence.nthDay) {
-      //     nextDate.setMonth(nextDate.getMonth() + interval);
-      //     nextDate.setDate(recurrence.nthDay);
-      //   } else {
-      //     nextDate.setMonth(nextDate.getMonth() + interval);
-      //   }
-      //   break;
-      // case 'yearly':
-      //   nextDate.setFullYear(nextDate.getFullYear() + interval);
-      //   break;
+      case 'weekly':
+        nextDate.setDate(nextDate.getDate() + interval * 7);
+        console.log("hi")
+        break;
+      case 'monthly':
+        if (recurrence.nthDay) {
+          nextDate.setMonth(nextDate.getMonth() + interval);
+          nextDate.setDate(recurrence.nthDay);
+        } else {
+          nextDate.setMonth(nextDate.getMonth() + interval);
+        }
+        break;
+      case 'yearly':
+        nextDate.setFullYear(nextDate.getFullYear() + interval);
+        break;
     }
   
     // For weekly recurrence, ensure it's a specified day
@@ -32,7 +32,7 @@ async function calculateNextDate(startDate, type, interval, id) {
     //   }
     // }
 
-    nextDate.setDate(nextDate.getDate());
+    nextDate.setDate(nextDate.getDate()+1);
     console.log(nextDate)
     // try{
     //     const result = await client.query(

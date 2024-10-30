@@ -22,35 +22,74 @@ app.get("/version", async (req, res) => {
   }
 });
 
+// app.get("/tasks", async (req, res) => {
+//   try {
+//     const query = `
+//       SELECT * from tasks;
+//     `;
+
+//     const result = await client.query(query);
+//     // const result2 = await client.query(query2);
+//     // console.log(result2)
+//     res.json(result.rows);
+//   } catch (error) {
+//     console.error("Error retrieving tasks:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+
+
 // Endpoint to get all tasks
 app.get("/tasks", async (req, res) => {
     try {
       const query = `
-        SELECT tasks.id AS task_id, recurrence.id AS recurrence_id, tasks.*, recurrence.* 
-        FROM tasks
-        LEFT JOIN recurrence ON tasks.id = recurrence.task_id
-        ORDER BY tasks.id DESC
+        SELECT t.id AS task_id, t.description, t.created_at, t.due_date, t.completed,
+              r.type AS recurrence_type, r.interval AS recurrence_interval, r.nextdate AS recurrence_nextDate
+        FROM tasks t
+        LEFT JOIN recurrence r ON t.id = r.task_id;
       `;
 
       const query2 = `
-        SELECT * 
-        FROM recurrence
-      `;
-      
+       SELECT * from recurrence;
+     `;
+
+     const result2 = await client.query(query2);
+     console.log(result2)
+
       const result = await client.query(query);
-      const result2 = await client.query(query2);
-      result2.rows.map(task=>console.log(task))
-      const tasks = result.rows.map(task => ({
-        id: task.task_id,
-        description: task.description,
-        created_at: task.created_at,
-        due_date: task.due_date,
-        recurrence: task.type, 
-        interval:task.interval,
-        completed: task.completed
-      }));
-  
-      res.json(tasks);
+      const tasks = result.rows;
+      console.log(tasks)
+      const recurringTasks = tasks
+        .filter(task => task.recurrence_type !== null)
+        .map(task => ({
+          id: task.task_id,
+          description: task.description,
+          created_at: task.created_at,
+          due_date: task.due_date,
+          recurrence: task.recurrence_type, 
+          interval: task.recurrence_interval,
+          nextDate: task.recurrence_nextdate,
+          completed: task.completed
+        }));
+
+      const nonRecurringTasks = tasks
+        .filter(task => task.recurrence_type === null)
+        .map(task => ({
+          id: task.task_id,
+          description: task.description,
+          created_at: task.created_at,
+          due_date: task.due_date,
+          completed: task.completed
+        }));
+
+      const combinedResult = {
+        recurring: recurringTasks,
+        non_recurring: nonRecurringTasks,
+      };
+      console.log(combinedResult)
+      res.json(combinedResult);
+
     } catch (error) {
       console.error("Error retrieving tasks:", error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -58,15 +97,15 @@ app.get("/tasks", async (req, res) => {
   });
   
 
-app.get("/create", async (req, res) => {
-    try {
-      const result = await client.query("DELETE FROM tasks WHERE id > 0;");
-      res.json(result);
-    } catch (error) {
-      console.error("Error retrieving tasks:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+// app.get("/create", async (req, res) => {
+//     try {
+//       const result = await client.query("DELETE FROM tasks;");
+//       res.json(result);
+//     } catch (error) {
+//       console.error("Error retrieving tasks:", error);
+//       res.status(500).json({ error: "Internal Server Error" });
+//     }
+//   });
 
 // Endpoint to add a new task
 app.post("/tasksPost", async (req, res) => {
@@ -78,8 +117,8 @@ app.post("/tasksPost", async (req, res) => {
   
     try {
       const result = await client.query(
-        "INSERT INTO tasks (description, due_date, nextDate) VALUES ($1, $2, $3) RETURNING *",
-        [description, due_date, nextDate]
+        "INSERT INTO tasks (description, due_date) VALUES ($1, $2) RETURNING *",
+        [description, due_date]
       );
       res.json(result.rows[0]);
     } catch (error) {
@@ -87,42 +126,70 @@ app.post("/tasksPost", async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     }
   }); 
+
+  app.put("/tasks/rucurring-date/:id", async(req,res)=>{
+    const { id } = req.params;
+    const { date } = req.body;
+    const newDate=await calculateNextDate(new Date(date))
+    const updatedDate=new Date(newDate)
+    console.log("updated date ",updatedDate)
+    try{
+      const recResult = await client.query(
+        `UPDATE recurrence SET nextdate = $2 WHERE task_id = $1 RETURNING *`,
+        [parseInt(id, 10), newDate]
+      );
+      console.log("Recurrence updated:", recResult.rows[0]);
+      res.json(recResult.rows[0]);
+    }catch(e){
+      console.error("Error updating task:", e);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+    
+   });
   
   app.put("/tasks/:id", async (req, res) => {
     const { id } = req.params;
-    const { description, due_date, recurrence, checked, interval, startDate } = req.body;
+    const { description, due_date, recurrence, completed, interval, startDate } = req.body;
   
     console.log("Updating Task - ID:", id);
     console.log("Description:", description);
     console.log("Due Date:", due_date);
     console.log("Recurrence:", recurrence);
-    console.log("Checked:", checked);
+    console.log("Completed:", completed);
   
     try {
-        const result = await client.query(
-            "UPDATE tasks SET description = $1, due_date = $2, completed = $3 WHERE id = $4 RETURNING *",
-            [description, due_date, checked, parseInt(id, 10)]
-          );
-          
-          if (recurrence) {
-            const type=recurrence;
-            const nextDate=await calculateNextDate(startDate,type,interval);
-            console.log("kjsdvjkbf "+nextDate);
-            // Update or insert recurrence based on task_id
-            const recResult=await client.query(
-                "UPDATE recurrence SET type = $2, interval = $3, nextDate = $4 WHERE task_id = $1 RETURNING *",
-                [parseInt(id, 10), type, interval, nextDate]
-              );
-          //await calculateNextDate(startDate,type,interval, id)
-        }
-
+      // Update task in the tasks table
+      const result = await client.query(
+        "UPDATE tasks SET description = $1, due_date = $2, completed = $3 WHERE id = $4 RETURNING *",
+        [description, due_date, completed, parseInt(id, 10)]
+      );
+  
+      // If recurrence information is provided, update the recurrence table
+      if (recurrence) {
+        const type = recurrence;
+        const nextDate = await calculateNextDate(startDate, type, interval);
+  
+        // Insert or update recurrence details based on task_id
+        const recResult = await client.query(
+          `INSERT INTO recurrence (task_id, type, interval, nextDate)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (task_id)
+           DO UPDATE SET type = EXCLUDED.type, interval = EXCLUDED.interval, nextDate = EXCLUDED.nextDate
+           RETURNING *`,
+          [parseInt(id, 10), type, interval, nextDate]
+        );
+  
+        console.log("Recurrence updated:", recResult.rows[0]);
+      }
+  
       const updatedTask = result.rows[0];
-      res.json(updatedTask);
+      res.json(updatedTask);  // Send back updated task details
     } catch (error) {
       console.error("Error updating task:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
+  
   
 
   app.put("/tasks/:id/checked", async (req, res) => {

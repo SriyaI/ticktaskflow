@@ -4,7 +4,7 @@ import axios from "axios";
 const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
-  const [tasks, setTasks] = useState([]);  // Initialize tasks as an empty array
+  const [tasks, setTasks] = useState({ recurring: [], non_recurring: [] });  // Initialize tasks as an empty array
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,8 +12,9 @@ export const TaskProvider = ({ children }) => {
       setLoading(true);
       try {
         const response = await axios.get("http://localhost:5000/tasks"); // Adjust URL if needed
+        const { recurring, non_recurring } = response.data;
         console.log(response.data);
-        setTasks(response.data);  // Update tasks with response data
+        setTasks({recurring,non_recurring});  // Update tasks with response data
       } catch (error) {
         console.error("Error fetching tasks:", error);
       } finally {
@@ -31,26 +32,37 @@ export const TaskProvider = ({ children }) => {
         due_date: dueDate,
         nextDate: new Date()
       });
-      setTasks((prevTasks) => [response.data, ...prevTasks]);  // Add new task to state
+      console.log(response.data)
+      setTasks((prevTasks) => ({
+        ...prevTasks,
+        non_recurring: [response.data, ...prevTasks.non_recurring],
+    }));
+      // Add new task to state
     } catch (error) {
       console.error("Error adding task:", error);
     }
   };
 
-  const updateRecurringTask = async (id, recurrence) => {
+  const updateRecurringTask = async (id, date) => {
     try {
-      const response = await axios.put(`http://localhost:5000/tasks/${id}`, {
-        description,
-        due_date: dueDate,
-        recurrence,
-        checked,  // Include checked status in the request body
+        console.log(id,date)
+      const response = await axios.put(`http://localhost:5000/tasks/rucurring-date/${id}`, {
+        date:new Date(date)
       });
-  
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === id ? response.data : task
-        )
-      );
+      console.log(new Date())
+      console.log(response.data)
+      const updatedTask = response.data;
+      setTasks((prevTasks) => {
+        return {
+          ...prevTasks,
+          recurring: prevTasks.recurring.map((task) =>
+            task.id === id
+              ? { ...task, nextDate: updatedTask.nextdate }
+              : task
+          ),
+        };
+      });
+      
     } catch (error) {
       console.error("Error updating task:", error);
     }
@@ -75,20 +87,38 @@ export const TaskProvider = ({ children }) => {
         description,
         due_date: dueDate,
         recurrence,
-        checked,  // Include checked status in the request body
+        completed: checked,  // Pass checked status as completed
         interval,
         startDate
       });
+      console.log(response.data);
   
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === id ? response.data : task
-        )
-      );
+      // Update tasks based on category
+      setTasks((prevTasks) => {
+        const updatedTask = response.data;
+  
+        // Update recurring or non_recurring based on recurrence value
+        if (recurrence) {
+          return {
+            ...prevTasks,
+            recurring: prevTasks.recurring.map((task) =>
+              task.id === id ? updatedTask : task
+            )
+          };
+        } else {
+          return {
+            ...prevTasks,
+            non_recurring: prevTasks.non_recurring.map((task) =>
+              task.id === id ? updatedTask : task
+            )
+          };
+        }
+      });
     } catch (error) {
       console.error("Error updating task:", error);
     }
   };
+  
   
   const updateChecked = async (id, isChecked) => {
     try {
@@ -114,7 +144,7 @@ export const TaskProvider = ({ children }) => {
   
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, loading, updateTask, updateChecked, addRecurringTask }}>
+    <TaskContext.Provider value={{ tasks, addTask, loading, updateTask, updateChecked, addRecurringTask, updateRecurringTask }}>
       {children}
     </TaskContext.Provider>
   );
